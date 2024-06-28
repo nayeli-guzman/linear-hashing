@@ -1,8 +1,10 @@
-#ifndef AED_LINEAR_HASHING_H
-#define AED_LINEAR_HASHING_H
+
+#ifndef AED_LINEAR_HASH_H
+#define AED_LINEAR_HASH_H
 
 #include <iostream>
 #include <cmath>
+
 using namespace std;
 
 template<typename TK>
@@ -19,15 +21,17 @@ struct Nodo {
     }
 };
 
-template<typename TK>
+template<typename TK=int>
 class Linear_Hashing {
+private:
+    Menu<>& menu;
     int capacity;
     Nodo<TK>** buckets;
     int p, m_0, level, M, n, max;
     float upper_bound, lower_bound, factor;
 public:
 
-    Linear_Hashing() : p(0), m_0(4), level(0), M(4), n(0), upper_bound(0.75), lower_bound(0.3),factor(0), max(4) {
+    Linear_Hashing(Menu<>& _menu) : menu(_menu), p(0), m_0(4), level(0), M(4), n(0), upper_bound(0.75), lower_bound(0.3),factor(0), max(4) {
         capacity = 200;
         buckets = new Nodo<TK>* [capacity];
         for (int i=0; i<capacity; i++)
@@ -35,14 +39,44 @@ public:
     }
 
     void insert(TK key) {
+
         int index = find_index(key);
         push_front(buckets[index], key);
+        menu.set_key(index, key);
         n++;
         update_factor();
 
         if (factor >= upper_bound) {
             split();
+            display();
         }
+    }
+
+    void split() {
+        create_bucket();
+
+        Nodo<TK>* temp = buckets[p];
+        Nodo<TK>* lista = nullptr;
+
+        //temp->display(); cout << endl;
+
+        while (temp != nullptr) {
+            int new_index = hash_function(temp->key,1);
+            temp = temp->next;
+            TK waste = pop_front(buckets[p]);
+            if (new_index == p) {
+                push_front(lista,waste);
+                cout << "p: " << p << endl;
+                menu.set_key(p, waste);
+            }
+            else {
+                push_front(buckets[new_index], waste);
+                menu.set_key(new_index, waste);
+            }
+        }
+        buckets[p] = lista;
+        increase_p();
+
     }
 
     bool find(TK key) {
@@ -106,26 +140,7 @@ public:
         factor = (float) n / ((float)(max*M));
     }
 
-    void split() {
-        create_bucket();
-        Nodo<TK>* temp = buckets[p];
-        Nodo<TK>* lista = nullptr;
 
-        //temp->display(); cout << endl;
-
-        while (temp != nullptr) {
-            int new_index = hash_function(temp->key,1);
-            temp = temp->next;
-            TK waste = pop_front(buckets[p]);
-            if (new_index == p)
-                push_front(lista,waste);
-            else
-                push_front(buckets[new_index], waste);
-        }
-        buckets[p] = lista;
-        increase_p();
-
-    }
 
     void increase_p() {
         int m = pow(2,level) * m_0;
@@ -136,6 +151,7 @@ public:
 
     void create_bucket() {
         M++;
+        menu.set_table(M, true, p);
     }
 
     TK pop_front(Nodo<TK>* &current) {
@@ -177,4 +193,5 @@ public:
 
 };
 
-#endif //AED_LINEAR_HASHING_H
+
+#endif
