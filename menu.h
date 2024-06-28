@@ -7,30 +7,41 @@
 #include <algorithm>
 #include <SFML/Graphics.hpp>
 #define BUCKET 80
-#define M 4;
+#define MAX 4
+#define SEPARATION 20
 using namespace sf;
 using namespace std;
 
+template<typename TK=int>
 class Menu {
-friend class Screen;
+
+    friend class Screen;
+
+    int M;
     RenderWindow &window;
     RectangleShape b_main, b_dynamic, b_insert, b_find, b_delete;
-    vector<RectangleShape>  buckets;
-    vector<RectangleShape> lines;
     Font font_1, font_2;
     Text text_1, text_2, text_3, text_4, text_dynamic, text_p;
     String string_dynamic = "";
     string string_1 = "Linear Hashing\n  Visualizer", string_2 = "Insertar", string_3 = "Eliminar"
             , string_4 = "Buscar", string_p = "p";
+    vector<int> positions;
+    vector<vector<Text>> extras;
+    vector<vector<Sprite*>> buckets;
+    Texture* node_image;
 
 public:
 
     Menu(RenderWindow& window_) : window(window_) {
 
+        positions.resize(4,0);
+        node_image = new Texture();
+        node_image->loadFromFile("C:/utec/AED/images/node.png");
+        extras.resize(MAX);
         set_fonts();
         set_backgrounds();
         set_texts();
-        set_primary();
+        set_table(MAX, false);
 
     }
 
@@ -91,39 +102,80 @@ public:
         font_1.loadFromFile("C:/utec/AED/fonts/font_1.ttf");
         font_2.loadFromFile("C:/utec/AED/fonts/font_2.ttf");
     }
-    void set_primary() {
+    void set_table(int _M, bool c, int p=0) {
 
-        for (int i=0, j=0; i<4; i++, j=j+100) {
+        M = _M;
 
-            for (int k=0, l=0; k<3; k++, l=l+BUCKET) {
+        if (c) {
+            //extras.clear();
 
-                RectangleShape r;
-                r = RectangleShape(Vector2f(2,BUCKET));
-                r.setFillColor(Color::Black);
-                r.setPosition(800 + BUCKET + l, 200 + j);
-                lines.push_back(r);
+            positions.clear();
+            positions.resize(M, 0);
+
+            for(int i=0; i<extras.size(); i++) {
+                if (i != p) {
+                    for (int j=0; j<extras[i].size(); j++) update_key(i,j); // falta ver en que orden se insertan visualmente
+                }
+            }
+            extras[p].clear();
+            extras.resize(M);
+            buckets.clear();
+        }
+
+        int Y = start_height_table();
+
+        for (int i=0, j=0; i<M; i++, j=j+BUCKET+SEPARATION) {
+
+            vector<Sprite*> fila;
+
+            for (int k=0, l=0; k<MAX; k++, l=l+BUCKET) {
+
+                Sprite* node = new Sprite();
+                node->setTexture(*node_image);
+                node->setPosition(800 + l, Y + j);
+                fila.push_back(node);
             }
 
-            RectangleShape r;
-            r = RectangleShape(Vector2f(BUCKET*4,BUCKET));
-            r.setOutlineColor(Color::Black);
-            r.setOutlineThickness(2);
-            r.setPosition(800,200 + j);
-            buckets.push_back(r);
+            buckets.push_back(fila);
 
         }
 
+
+
     }
+
+    float start_height_table() {
+        int height_table = BUCKET*M + SEPARATION*(M-1);
+        return HEIGHT/2 - height_table/2;
+    }
+    void set_key(int x, TK key) {
+
+        int Y = start_height_table() + x * BUCKET + x * SEPARATION + 10;
+
+        Text _key;
+        _key.setFont(font_2);
+        _key.setString(to_string(key));
+        _key.setPosition(820 + positions[x]++ * BUCKET, Y);
+        _key.setCharacterSize(30);
+        _key.setColor(Color::Black);
+        extras[x].push_back(_key);
+
+    }
+
+    void update_key(int x, int y) {
+        int Y = start_height_table() + x * BUCKET + x * SEPARATION + 10;
+        extras[x][y].setPosition(820 + positions[x]++ * BUCKET, Y);
+
+    }
+
+
     void draw() {
+
         window.draw(b_main);
         window.draw(b_dynamic);
         window.draw(b_find);
         window.draw(b_delete);
         window.draw(b_insert);
-
-        for_each(buckets.begin(), buckets.end(), [=](RectangleShape x){window.draw(x);});
-        for_each(lines.begin(), lines.end(), [=](RectangleShape x){window.draw(x);});
-
 
         window.draw(text_1);
         window.draw(text_2);
@@ -131,13 +183,18 @@ public:
         window.draw(text_4);
         window.draw(text_p);
         window.draw(text_dynamic);
+
+        for_each(buckets.begin(), buckets.end(), [=](vector<Sprite*> x){
+            for_each(x.begin(), x.end(), [=](Sprite* y){window.draw(*y);});
+        });
+
+        for_each(extras.begin(), extras.end(), [=](vector<Text> x){
+            for_each(x.begin(), x.end(), [=](Text y){window.draw(y);});
+        });
+
         //window.display();
     }
 
-    void add_key(int key) {
-        int index = key % M;
-        
-    }
 
 };
 
