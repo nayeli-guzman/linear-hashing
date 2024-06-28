@@ -1,9 +1,13 @@
 #ifndef AED_SCREEN_H
 #define AED_SCREEN_H
 
+#define HEIGHT 800
+#define WIDTH 1400
 #include "menu.h"
 #include <iostream>
+#include "Linear_Hash.h"
 #include <SFML/Graphics.hpp>
+
 using namespace std;
 using namespace sf;
 
@@ -12,14 +16,16 @@ class Screen {
     RenderWindow window;
     Texture *image;
     Sprite *square;
-    Menu *menu;
+    Menu<> *menu;
+    Linear_Hashing<>* table;
+
 
 public:
     Screen() {
-        window.create(sf::VideoMode(1400, 800), "My window");
-        square = new Sprite();
-        image = new Texture();
+        window.create(VideoMode(WIDTH, HEIGHT), "Linear Hashing");
+
         menu = new Menu (window);
+        table = new Linear_Hashing<>(*menu);
 
     }
     void execute() {
@@ -46,7 +52,9 @@ public:
                     if (event.text.unicode == 13 && menu->string_dynamic.getSize()>0) {
                         string key_str = menu->text_dynamic.getString();
                         int key = stoi(key_str);
-                        menu->add_key(key);
+                        table->insert(key);
+                        menu->text_dynamic.setString("");
+                        menu->string_dynamic = "";
                     }
                 }
             }
@@ -54,9 +62,7 @@ public:
 
 
 /*
-            square->setPosition(500,500);
-            image->loadFromFile("C:/utec/AED/first.png");
-            square->setTexture(*image);
+
 */
             menu->draw();
 
