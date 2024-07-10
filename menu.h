@@ -30,13 +30,15 @@ class Menu {
     vector<vector<Sprite*>> buckets;
     Texture* node_image;
 
+    Vector2f mousePosition;
+
 public:
 
     Menu(RenderWindow& window_) : window(window_) {
 
         positions.resize(4,0);
         node_image = new Texture();
-        node_image->loadFromFile("C:/utec/AED/images/node.png");
+        node_image->loadFromFile("/home/andreacoa/Documents/cplusplus/linear-hashing/images/node.png");
         extras.resize(MAX);
         set_fonts();
         set_backgrounds();
@@ -99,8 +101,8 @@ public:
         text_p.setFillColor(Color::Black);
     }
     void set_fonts() {
-        font_1.loadFromFile("C:/utec/AED/fonts/font_1.ttf");
-        font_2.loadFromFile("C:/utec/AED/fonts/font_2.ttf");
+        font_1.loadFromFile("/home/andreacoa/Documents/cplusplus/linear-hashing/fonts/font_1.ttf");
+        font_2.loadFromFile("/home/andreacoa/Documents/cplusplus/linear-hashing/fonts/font_2.ttf");
     }
     void set_table(int _M, bool c, int p=0) {
 
@@ -139,6 +141,7 @@ public:
             buckets.push_back(fila);
 
         }
+        cout << "buckets size: " << buckets.size()<< endl;
 
 
 
@@ -162,10 +165,33 @@ public:
 
     }
 
+    void delete_key(int x, TK key) {
+        // hallar el key y borrarlo
+        auto it = std::find_if(extras[x].begin(), extras[x].end(), [key](const sf::Text& text) {
+            return text.getString() == std::to_string(key);
+        });
+        if (it != extras[x].end()) {
+            extras[x].erase(it);
+        }
+
+        // decrementar positions
+        positions[x] =  0;
+
+        // actualizar los positions de cada Text en extras
+        for (int j = 0; j < extras[x].size(); j++) {
+            update_key(x, j);
+        }
+    }
+
     void update_key(int x, int y) {
         int Y = start_height_table() + x * BUCKET + x * SEPARATION + 10;
         extras[x][y].setPosition(820 + positions[x]++ * BUCKET, Y);
 
+    }
+
+    void update_mouse_position() {
+        mousePosition = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+        // std::cout<<"Mouse at: " << mousePosition.x << " - " << mousePosition.y << endl;
     }
 
 

@@ -5,7 +5,7 @@
 #define WIDTH 1400
 #include "menu.h"
 #include <iostream>
-#include "Linear_Hash.h"
+#include "Linear_Hashing.h"
 #include <SFML/Graphics.hpp>
 
 using namespace std;
@@ -51,10 +51,39 @@ public:
 
                     if (event.text.unicode == 13 && menu->string_dynamic.getSize()>0) {
                         string key_str = menu->text_dynamic.getString();
-                        int key = stoi(key_str);
-                        table->insert(key);
-                        menu->text_dynamic.setString("");
-                        menu->string_dynamic = "";
+                        try { // catch backspace error
+                            int key = stoi(key_str);
+                            table->insert(key);
+                            menu->text_dynamic.setString("");
+                            menu->string_dynamic = "";
+                        }
+                        catch (exception &e) {
+                        }
+
+                    }
+                }
+                if (event.type == Event::MouseButtonPressed && event.mouseButton.button== Mouse::Left) {
+                    if (menu->b_insert.getGlobalBounds().contains(menu->mousePosition) && menu->string_dynamic.getSize()>0) {
+                        string key_str = menu->text_dynamic.getString();
+                        try { // catch backspace error
+                            int key = stoi(key_str);
+                            table->insert(key);
+                            menu->text_dynamic.setString("");
+                            menu->string_dynamic = "";
+                        }
+                        catch (exception &e) {
+                        }
+                    }
+                    else if (menu->b_delete.getGlobalBounds().contains(menu->mousePosition) && menu->string_dynamic.getSize()>0) {
+                        string key_str = menu->text_dynamic.getString();
+                        try { // catch backspace error
+                            int key = stoi(key_str);
+                            table->borrar(key);
+                            menu->text_dynamic.setString("");
+                            menu->string_dynamic = "";
+                        }
+                        catch (exception &e) {
+                        }
                     }
                 }
             }
@@ -63,7 +92,7 @@ public:
 
 /*
 
-*/
+*/          menu->update_mouse_position();
             menu->draw();
 
  //           window.draw(*square);

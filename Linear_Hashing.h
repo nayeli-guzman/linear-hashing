@@ -92,35 +92,49 @@ public:
     void borrar(TK key) {
         int index = find_index(key);
         Nodo<TK>* temp = buckets[index];
+        if (buckets[index] == nullptr) return; //?
 
         if (temp->key == key) {
-            pop_front(temp);
-            return;
+            pop_front(buckets[index]);
+        } else {
+            while (temp->next != nullptr && temp->next->key != key)
+                temp = temp->next;
+
+            Nodo<TK>* waste = temp->next;
+            temp->next = temp->next->next;
+            delete waste;
+            waste = nullptr;
         }
-
-        while (temp->next != nullptr && temp->next->key != key)
-            temp = temp->next;
-
-        Nodo<TK>* waste = temp->next;
-        temp->next = temp->next->next;
-        delete waste;
-        waste = nullptr;
         n--;
         update_factor();
-        if (factor < lower_bound)
+        menu.delete_key(index, key);
+
+        if (M > m_0 && factor < lower_bound) {
             group();
+        }
+        display();
+
+
     }
 
     void group() {
         decrease_p();
-        Nodo<TK> temp = buckets[M-1];
+        Nodo<TK>* temp = buckets[M-1];
+        menu.set_table(M-1, true, p);
         while (temp != nullptr) {
-            int new_index = hash_function(temp.key, 0);
+            int new_index = hash_function(temp->key, 0);
+            temp = temp->next;
             TK waste = pop_front(buckets[M-1]);
-            temp = temp.next;
             push_front(buckets[new_index], waste);
         }
         M--;
+
+        auto aux = buckets[p];
+        while (aux != nullptr) {
+            menu.set_key(p, aux->key);
+            aux = aux->next;
+        }
+
     }
 
     void decrease_p() {
