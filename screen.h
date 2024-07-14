@@ -5,7 +5,7 @@
 #define WIDTH 1400
 #include "menu.h"
 #include <iostream>
-#include "Linear_Hash.h"
+#include "Linear_Hashing.h"
 #include <SFML/Graphics.hpp>
 
 using namespace std;
@@ -76,6 +76,17 @@ public:
                         try { // catch backspace error
                             int key = stoi(key_str);
                             table->borrar(key);
+                            menu->text_dynamic.setString("");
+                            menu->string_dynamic = "";
+                        }
+                        catch (exception &e) {
+                        }
+                    }
+                    else if (menu->b_find.getGlobalBounds().contains(menu->mousePosition) && menu->string_dynamic.getSize() > 0) {
+                        string key_str = menu->text_dynamic.getString();
+                        try { // catch backspace error
+                            int key = stoi(key_str);
+                            table->find(key);
                             menu->text_dynamic.setString("");
                             menu->string_dynamic = "";
                         }

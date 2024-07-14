@@ -4,10 +4,11 @@
 
 #include <iostream>
 #include <vector>
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 #include <SFML/Graphics.hpp>
 #include <iomanip>
+
 #define BUCKET 80
 #define MAX 4
 #define SEPARATION 20
@@ -27,22 +28,22 @@ class Menu {
 
     //friend class Linear_Hash;
     friend class Screen;
-
     int M;
     RenderWindow &window;
     RectangleShape b_main, b_dynamic, b_insert, b_find, b_delete;
     Font font_1, font_2;
     Text text_1, text_2, text_3, text_4, text_dynamic, text_p, text_lower, text_comparison,
-            text_upper, text_factor, text_space;
+            text_upper, text_factor, text_space, text_description;
     String string_dynamic = "";
     string string_1 = "Linear Hashing\n  Visualizer", string_2 = "Insertar",
             string_3 = "Eliminar", string_4 = "Buscar", string_p = "p",
             string_lower = "lower bound: 0.3", string_upper = "upper bound: 0.75",
-            string_factor = "factor: ", string_comparison = "0.0", string_space = "";
+            string_factor = "factor: ", string_comparison = "0.0", string_space = "", string_description="Empieza a insertar elementos!";
     vector<int> positions;
     vector<vector<Text>> extras;
     vector<vector<Sprite*>> buckets;
     Texture* node_image;
+    Texture *green_node_image;
     bool indicator = false;
 
     Vector2f mousePosition;
@@ -54,6 +55,8 @@ public:
         positions.resize(4,0);
         node_image = new Texture();
         node_image->loadFromFile("C:/utec/AED/images/node.png");
+        green_node_image = new Texture();
+        green_node_image->loadFromFile("C:/utec/AED/images/green_node.png");
         extras.resize(MAX);
         set_fonts();
         set_backgrounds();
@@ -69,29 +72,35 @@ public:
         text_lower.setString(string_lower);
         text_lower.setFillColor(Color::Red);
         text_lower.setCharacterSize(15);
-        text_lower.setPosition(95,750);
+        text_lower.setPosition(95,680);
 
         text_upper.setFont(font_2);
         text_upper.setString(string_upper);
         text_upper.setFillColor(Color::Blue);
         text_upper.setCharacterSize(15);
-        text_upper.setPosition(275,750);
+        text_upper.setPosition(275,680);
 
         text_factor.setFont(font_2);
         text_factor.setString(string_factor);
         text_factor.setCharacterSize(15);
-        text_factor.setPosition(95,700);
+        text_factor.setPosition(95,660);
 
         text_comparison.setFont(font_2);
         text_comparison.setString(string_comparison);
         text_comparison.setCharacterSize(15);
-        text_comparison.setPosition(150,700);
+        text_comparison.setPosition(150,660);
 
         text_space.setFont(font_2);
         text_space.setString(string_space);
         text_space.setFillColor(Color::Red);
         text_space.setCharacterSize(15);
-        text_space.setPosition(350,700);
+        text_space.setPosition(350,660);
+
+        text_description.setFont(font_2);
+        text_description.setString(string_description);
+        text_description.setFillColor(Color::Black);
+        text_description.setCharacterSize(16);
+        text_description.setPosition(100,280);
     }
 
     void set_backgrounds() {
@@ -221,9 +230,9 @@ public:
         }
     }
 
-    void hold_on() {
+    void hold_on(int milisecs = 500) {
         draw();
-        sleep(milliseconds(500));
+        sleep(milliseconds(milisecs));
     }
 
     void delete_key(int x, TK key) {
@@ -260,6 +269,31 @@ public:
         text_p.setPosition(750,Y+y*BUCKET+y*SEPARATION+BUCKET/4);
     }
 
+    void update_description(Operation operation, TK key, int p, int m0, int level) {
+        string new_description;
+        int first_b = m0*pow(2,level);
+        int first_index = key % first_b;
+
+        new_description = "Index: " + to_string(key) + " % " + to_string(first_b) +  " = "  + to_string(first_index);
+        if (first_index < p) {
+            int second_index = key % (first_b*2);
+            new_description+=(", es menor a p!\nIndex recalculado: \n" + to_string(key) + "%" + to_string(first_b*2) + " = " + to_string(second_index) );
+        }
+        text_description.setString(new_description);
+        hold_on(500);
+    }
+
+    void search_animation(int x, int key) {
+        for (int i = 0; i < buckets.size(); i++) {
+            buckets[x][i]->setTexture(*green_node_image);
+            window.clear(Color::White);
+            hold_on(800);
+            buckets[x][i]->setTexture(*node_image);
+            if (extras[x][i].getString() == to_string(key))
+                break;
+        }
+    }
+
     void update_factor(float factor, Operation operation) {
         string factor_str = to_string(factor);
         string_comparison = string(1,factor_str[0]) + string(1,factor_str[1]) + string(1,factor_str[2]) + string(1,factor_str[3]);
@@ -267,12 +301,22 @@ public:
 
         switch (operation) {
             case Insert:
-                temp = temp + "\t<\t0.75";
-                if (factor < 0.75) string_space = "Hay espacio";
-                else string_space = "Split!";
-
+                if (factor < 0.75) {
+                    temp = temp + "\t<\t0.75";
+                    string_space = "Hay espacio";
+                } else {
+                    temp = temp + "\t>=\t0.75";
+                    string_space = "Split!";
+                }
                 break;
             case Delete:
+                if (factor >= 0.3) {
+                    temp = temp + "\t>=\t0.3";
+                    string_space = "Sobra espacio";
+                } else {
+                    temp = temp + "\t<t0.3";
+                    string_space = "Group!";
+                }
                 break;
             case Search:
                 break;
@@ -313,6 +357,7 @@ public:
         window.draw(text_factor);
         window.draw(text_lower);
         window.draw(text_comparison);
+        window.draw(text_description);
 
         for_each(buckets.begin(), buckets.end(), [=](vector<Sprite*> x){
             for_each(x.begin(), x.end(), [=](Sprite* y){window.draw(*y);});

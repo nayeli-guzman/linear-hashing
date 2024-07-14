@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <cmath>
+#include "menu.h"
 
 using namespace std;
 
@@ -40,11 +41,14 @@ public:
 
     void insert(TK key) {
 
-        if (find(key)) return;
+        if (find(key, false)) return;
 
         int index = find_index(key);
         push_front(buckets[index], key);
+
+        menu.update_description(Insert, key, p, m_0, level);
         menu.set_key(index, key);
+
         n++;
         update_factor();
 
@@ -86,13 +90,15 @@ public:
 
     }
 
-    bool find(TK key) {
+    bool find(TK key, bool animate = true) {
         int index = find_index(key);
         Nodo<TK>* temp = buckets[index];
 
         while (temp != nullptr && temp->key != key)
             temp = temp->next;
 
+        if (animate)
+        menu.search_animation(index, key);
         return temp;
     }
 
@@ -102,14 +108,17 @@ public:
 
         if (temp == nullptr) return; //?
 
+        menu.update_description(Delete, key, p, m_0, level);
         if (temp->key == key) {
-            pop_front(temp);
+            pop_front(buckets[index]);
         }
 
         else {
 
             while (temp->next != nullptr && temp->next->key != key)
                 temp = temp->next;
+            if (temp->next == nullptr || temp->next->key != key)
+                return;
 
 
             Nodo<TK>* waste = temp->next;
@@ -120,6 +129,7 @@ public:
 
         n--;
         update_factor();
+        menu.update_factor(factor, Delete);
         menu.delete_key(index, key);
 
         if (M > m_0 && factor < lower_bound) {
@@ -199,8 +209,10 @@ public:
 
     void display() {
         for (int i=0; i<M; i++) {
-            buckets[i]->display();
-            cout << endl;
+            if (buckets[i]) {
+                buckets[i]->display();
+                cout << endl;
+            }
         }
     }
 
@@ -209,6 +221,7 @@ public:
         index = hash_function(key, 0);
         if (index < p)
             index = hash_function(key, 1);
+        // menu.update_description(Search, key, p, m_0, level);
         return index;
     }
 
