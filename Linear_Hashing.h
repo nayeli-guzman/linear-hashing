@@ -40,17 +40,24 @@ public:
 
     void insert(TK key) {
 
+        if (find(key)) return;
+
         int index = find_index(key);
         push_front(buckets[index], key);
         menu.set_key(index, key);
         n++;
         update_factor();
 
+        menu.update_factor(factor, Insert);
+
+
         if (factor >= upper_bound) {
+
             split();
             display();
         }
     }
+
 
     void split() {
         create_bucket();
@@ -67,11 +74,11 @@ public:
             if (new_index == p) {
                 push_front(lista,waste);
                 cout << "p: " << p << endl;
-                menu.set_key(p, waste);
+                menu.set_key(p, waste, true);
             }
             else {
                 push_front(buckets[new_index], waste);
-                menu.set_key(new_index, waste);
+                menu.set_key(new_index, waste, true);
             }
         }
         buckets[p] = lista;
@@ -92,19 +99,25 @@ public:
     void borrar(TK key) {
         int index = find_index(key);
         Nodo<TK>* temp = buckets[index];
-        if (buckets[index] == nullptr) return; //?
+
+        if (temp == nullptr) return; //?
 
         if (temp->key == key) {
-            pop_front(buckets[index]);
-        } else {
+            pop_front(temp);
+        }
+
+        else {
+
             while (temp->next != nullptr && temp->next->key != key)
                 temp = temp->next;
+
 
             Nodo<TK>* waste = temp->next;
             temp->next = temp->next->next;
             delete waste;
             waste = nullptr;
         }
+
         n--;
         update_factor();
         menu.delete_key(index, key);
@@ -113,18 +126,17 @@ public:
             group();
         }
         display();
-
-
     }
 
     void group() {
         decrease_p();
         Nodo<TK>* temp = buckets[M-1];
         menu.set_table(M-1, true, p);
+
         while (temp != nullptr) {
             int new_index = hash_function(temp->key, 0);
-            temp = temp->next;
             TK waste = pop_front(buckets[M-1]);
+            temp = temp->next;
             push_front(buckets[new_index], waste);
         }
         M--;
@@ -151,16 +163,16 @@ public:
     }
 
     void update_factor() {
+
         factor = (float) n / ((float)(max*M));
     }
-
-
 
     void increase_p() {
         int m = pow(2,level) * m_0;
         p = (p+1) % m;
         if (p == 0)
             level++;
+        menu.update_p(p);
     }
 
     void create_bucket() {
