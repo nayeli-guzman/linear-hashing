@@ -46,7 +46,7 @@ public:
         int index = find_index(key);
         push_front(buckets[index], key);
 
-        menu.update_description(Insert, key, p, m_0, level);
+        menu.update_description(key, p, m_0, level);
         menu.set_key(index, key);
 
         n++;
@@ -88,6 +88,10 @@ public:
         buckets[p] = lista;
         increase_p();
 
+        // update factor con "DELETE" porque no hará ningún comentario
+        update_factor();
+        menu.update_factor(factor, Delete);
+
     }
 
     bool find(TK key, bool animate = true) {
@@ -98,7 +102,7 @@ public:
             temp = temp->next;
 
         if (animate)
-        menu.search_animation(index, key);
+            menu.search_animation(index, key);
         return temp;
     }
 
@@ -108,7 +112,7 @@ public:
 
         if (temp == nullptr) return; //?
 
-        menu.update_description(Delete, key, p, m_0, level);
+        menu.update_description(key, p, m_0, level);
         if (temp->key == key) {
             pop_front(buckets[index]);
         }
@@ -135,18 +139,17 @@ public:
         if (M > m_0 && factor < lower_bound) {
             group();
         }
-        display();
+        // display();
     }
 
     void group() {
         decrease_p();
         Nodo<TK>* temp = buckets[M-1];
         menu.set_table(M-1, true, p);
-
         while (temp != nullptr) {
             int new_index = hash_function(temp->key, 0);
-            TK waste = pop_front(buckets[M-1]);
             temp = temp->next;
+            TK waste = pop_front(buckets[M-1]);
             push_front(buckets[new_index], waste);
         }
         M--;
@@ -157,6 +160,8 @@ public:
             aux = aux->next;
         }
 
+        update_factor();
+        menu.update_factor(factor, Delete);
     }
 
     void decrease_p() {
@@ -221,7 +226,6 @@ public:
         index = hash_function(key, 0);
         if (index < p)
             index = hash_function(key, 1);
-        // menu.update_description(Search, key, p, m_0, level);
         return index;
     }
 

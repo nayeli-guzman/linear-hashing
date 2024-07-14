@@ -43,7 +43,6 @@ class Menu {
     vector<vector<Text>> extras;
     vector<vector<Sprite*>> buckets;
     Texture* node_image;
-    Texture *green_node_image;
     bool indicator = false;
 
     Vector2f mousePosition;
@@ -55,8 +54,6 @@ public:
         positions.resize(4,0);
         node_image = new Texture();
         node_image->loadFromFile("C:/utec/AED/images/node.png");
-        green_node_image = new Texture();
-        green_node_image->loadFromFile("C:/utec/AED/images/green_node.png");
         extras.resize(MAX);
         set_fonts();
         set_backgrounds();
@@ -231,12 +228,14 @@ public:
     }
 
     void hold_on(int milisecs = 500) {
+        window.clear(Color::White);
         draw();
         sleep(milliseconds(milisecs));
     }
 
     void delete_key(int x, TK key) {
         // hallar el key y borrarlo
+        search_animation(x, key);
         auto it = std::find_if(extras[x].begin(), extras[x].end(), [key](const sf::Text& text) {
             return text.getString() == std::to_string(key);
         });
@@ -269,7 +268,7 @@ public:
         text_p.setPosition(750,Y+y*BUCKET+y*SEPARATION+BUCKET/4);
     }
 
-    void update_description(Operation operation, TK key, int p, int m0, int level) {
+    void update_description(TK key, int p, int m0, int level) {
         string new_description;
         int first_b = m0*pow(2,level);
         int first_index = key % first_b;
@@ -284,13 +283,18 @@ public:
     }
 
     void search_animation(int x, int key) {
-        for (int i = 0; i < buckets.size(); i++) {
-            buckets[x][i]->setTexture(*green_node_image);
-            window.clear(Color::White);
+
+        for (int i = 0; i < extras[x].size(); i++) {
+            extras[x][i].setFillColor(Color::Magenta);
             hold_on(800);
-            buckets[x][i]->setTexture(*node_image);
-            if (extras[x][i].getString() == to_string(key))
+            extras[x][i].setFillColor(Color::Black);
+            if (extras[x][i].getString() == to_string(key)) {
+                extras[x][i].setFillColor(Color::Green);
+                hold_on(1000);
+                extras[x][i].setFillColor(Color::Black);
                 break;
+            }
+
         }
     }
 
@@ -312,7 +316,7 @@ public:
             case Delete:
                 if (factor >= 0.3) {
                     temp = temp + "\t>=\t0.3";
-                    string_space = "Sobra espacio";
+                    string_space = "";
                 } else {
                     temp = temp + "\t<t0.3";
                     string_space = "Group!";
