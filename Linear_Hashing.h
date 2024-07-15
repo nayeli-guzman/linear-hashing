@@ -51,6 +51,11 @@ public:
 
         if (find(key, false)) return;
 
+        if (factor >= upper_bound && M==7) {
+            menu.update_description(0,0,0,true);
+            return;
+        }
+
         int index = find_index(key); // encuentra el índice con la función hash correcta
 
         push_front(buckets[index], key); // insertar en el índice que le corresponde
@@ -65,7 +70,10 @@ public:
 
 
         if (factor >= upper_bound) {
-            split(); // split cuando el factor excede el threshold
+            if (M+1>7)
+                menu.update_description(0,0,0,true);
+            else
+                split(); // split cuando el factor excede el threshold
             //display();
         }
     }
@@ -203,6 +211,7 @@ private:
 
     void create_bucket() {
         M++;
+        menu.split_bucket(p);
         menu.set_table(M, true, p);
     }
 
