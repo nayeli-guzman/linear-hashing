@@ -27,7 +27,7 @@ class Screen {
     }
 
 public:
-    
+
     static Screen* getInstance() {
         if (instancia == nullptr)
             instancia = new Screen;
@@ -41,6 +41,7 @@ public:
             window.clear(Color::White);
 
             Event event;
+
             while (window.pollEvent(event)) {
                 if (event.type == Event::Closed)
                     window.close();
