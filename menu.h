@@ -9,7 +9,7 @@
 #include <iomanip>
 
 #define BUCKET 80
-#define MAX_H 4
+#define MAX_H 5
 #define M_0 4
 #define SEPARATION 20
 using namespace sf;
@@ -41,7 +41,7 @@ class Menu {
     vector<int> positions; // indica cuantos elementos hay en cada bucket fila
     vector<vector<Text>> extras; // almacena los números que están presentes en la tabla
     vector<vector<Sprite*>> buckets; // cuadrilla
-    Texture* node_image;
+    Texture* node_image, *node_green;
     bool indicator = false;
 
     Vector2f mousePosition;
@@ -52,9 +52,8 @@ public:
 
         positions.resize(M_0,0);
         extras.resize(M_0);
-        node_image = new Texture();
-        node_image->loadFromFile("C:/utec/AED/images/node.png");
 
+        set_images();
         set_fonts();
         set_backgrounds();
         set_texts();
@@ -151,6 +150,16 @@ public:
 
     }
 
+    void split_bucket(int p) {
+        for (int i=0;i<buckets[p].size();i++) {
+            buckets[p][i]->setTexture(*node_green);
+        }
+        hold_on(600);
+        for (int i=0;i<buckets[p].size();i++) {
+            buckets[p][i]->setTexture(*node_image);
+        }
+    }
+
     void set_key(int x, TK key, bool split = false) {
         // x: pos del elemento verticalmente
         int Y = start_height_table() + x * BUCKET + x * SEPARATION + 10;
@@ -180,7 +189,7 @@ public:
         });
 
         if (it != extras[x].end()) {
-            extras[x].erase(it);
+            extras[x].erase(it); // si la llave está
         }
 
         // decrementar positions
@@ -199,7 +208,7 @@ public:
         int Y = start_height_table();
         text_p.setPosition(750,Y+y*BUCKET+y*SEPARATION+BUCKET/4);
     }
-    void update_description(TK key, int p, int level) {
+    void update_description(TK key, int p, int level, bool conf = false) {
 
         string new_description = "";
         int first_b = M_0 * pow(2,level); // función hash adecuada
@@ -210,9 +219,11 @@ public:
             int second_index = key % (first_b*2);
             new_description+=(", es menor a p!\nIndex recalculado: \n" + to_string(key) + "%" + to_string(first_b*2) + " = " + to_string(second_index) );
         }
+        if(conf) new_description = "El visualizador no admite mas elementos";
         text_description.setString(new_description);
-        hold_on(500);
-
+        text_description.setFillColor(Color::Blue);
+        hold_on();
+        text_description.setFillColor(Color::Black);
     }
     void search_animation(int x, int key) {
 
@@ -376,6 +387,12 @@ private:
     void set_fonts() {
         font_1.loadFromFile("C:/utec/AED/fonts/font_1.ttf");
         font_2.loadFromFile("C:/utec/AED/fonts/font_2.ttf");
+    }
+    void set_images() {
+        node_image = new Texture();
+        node_image->loadFromFile("C:/utec/AED/images/node.png");
+        node_green = new Texture();
+        node_green->loadFromFile("C:/utec/AED/images/search.png");
     }
 };
 
