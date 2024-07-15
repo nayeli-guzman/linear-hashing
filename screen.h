@@ -18,14 +18,22 @@ class Screen {
     Menu<> *menu;
     Linear_Hashing<>* table;
 
-public:
+    // singleton
+    static Screen* instancia;
     Screen() {
-
         window.create(VideoMode(WIDTH, HEIGHT), "Linear Hashing");
         menu = new Menu (window);
         table = new Linear_Hashing<>(*menu);
-
     }
+
+public:
+    
+    static Screen* getInstance() {
+        if (instancia == nullptr)
+            instancia = new Screen;
+        return instancia;
+    }
+
     void execute() {
 
         while (window.isOpen()) {
